@@ -25,6 +25,7 @@ import Dashboard from "./components/Dashboard.vue";
 import PersonList from "./components/PersonList.vue";
 import ProjectList from "./components/ProjectList.vue";
 import Charts from "./components/Charts.vue";
+import Analysis from "./components/Analysis.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -51,7 +52,16 @@ const router = createRouter({
       icon: "mdi-chart-bar",
       roles: [0, 1],
     },
+    {
+      path: "/analysis",
+      component: Analysis,
+      title: "Analiza",
+      icon: "mdi-chart-bar",
+      roles: [0],
+    },
   ],
 });
 
-createApp(App).use(vuetify).use(router).mount("#app");
+import ganttastic from "@infectoone/vue-ganttastic";
+
+createApp(App).use(vuetify).use(ganttastic).use(router).mount("#app");

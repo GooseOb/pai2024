@@ -91,8 +91,8 @@ export default {
       this.selectedTaskId = task._id;
       this.input = {
         name: task.name,
-        startDate: task.startDate ? task.startDate.substring(0, 10) : "",
-        endDate: task.endDate ? task.endDate.substring(0, 10) : "",
+        startDate: task.startDate,
+        endDate: task.endDate,
         assignee_ids: task.assignee_ids,
       };
     },

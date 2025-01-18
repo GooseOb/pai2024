@@ -5,8 +5,16 @@ const schema = new mongoose.Schema(
   {
     _id: { type: String, default: uuid.v4 },
     name: { type: String, required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: false },
+    startDate: {
+      type: Date,
+      required: true,
+      transform: (value) => value.toISOString().substr(0, 10),
+    },
+    endDate: {
+      type: Date,
+      required: false,
+      transform: (value) => value.toISOString().substr(0, 10),
+    },
     assignee_ids: { type: [String], required: false, default: [] },
     project_id: { type: String, required: true, ref: "project" },
   },
