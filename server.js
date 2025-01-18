@@ -13,7 +13,19 @@ const passportJson = require("passport-json");
 const auth = require("./auth");
 const person = require("./person");
 const project = require("./project");
-const config = require("./config");
+
+const config = {
+  port: 8000,
+  frontend: "./pai2024-vue/dist",
+  dbUrl: "mongodb://localhost:27017/pai2024",
+};
+
+try {
+  Object.assign(config, JSON.parse(fs.readFileSync("config.json")));
+  console.log("Konfiguracja z config.json");
+} catch (err) {
+  console.log("Konfiguracja domyślna");
+}
 
 const app = express();
 
@@ -60,13 +72,6 @@ app.get(project.endpoint, auth.checkIfInRole([0, 1]), project.get);
 app.post(project.endpoint, auth.checkIfInRole([0]), project.post);
 app.put(project.endpoint, auth.checkIfInRole([0]), project.put);
 app.delete(project.endpoint, auth.checkIfInRole([0]), project.delete);
-
-try {
-  config = JSON.parse(fs.readFileSync("config.json"));
-  console.log("Konfiguracja z config.json");
-} catch (err) {
-  console.log("Konfiguracja domyślna");
-}
 
 console.log("Łączę się z bazą danych...");
 mongoose
