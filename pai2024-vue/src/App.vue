@@ -1,12 +1,12 @@
 <script>
-import common from './mixins/common'
-import LoginDialog from './components/LoginDialog.vue'
-import LogoutDialog from './components/LogoutDialog.vue'
+import common from "./mixins/common";
+import LoginDialog from "./components/LoginDialog.vue";
+import LogoutDialog from "./components/LogoutDialog.vue";
 
-const authEndpoint = '/api/auth'
+const authEndpoint = "/api/auth";
 
 export default {
-  mixins: [ common ],
+  mixins: [common],
   components: { LoginDialog, LogoutDialog },
   data() {
     return {
@@ -14,68 +14,88 @@ export default {
       generalError: false,
       user: {},
       loginDialog: false,
-      logoutDialog: false
-    }
+      logoutDialog: false,
+    };
   },
   methods: {
-    onPopup(text, color = 'success') {
-      this.snackbar.text = text
-      this.snackbar.color = color
-      this.snackbar.on = true
+    onPopup(text, color = "success") {
+      this.snackbar.text = text;
+      this.snackbar.color = color;
+      this.snackbar.on = true;
     },
-    onLogin(text, color = 'success') {
-      this.loginDialog = false
-      this.logoutDialog = false
-      if(color == 'success') {
-        this.whoami()
-        this.$router.push('/')
+    onLogin(text, color = "success") {
+      this.loginDialog = false;
+      this.logoutDialog = false;
+      if (color == "success") {
+        this.whoami();
+        this.$router.push("/");
       }
-      if(text) {
-        this.onPopup(text, color)
+      if (text) {
+        this.onPopup(text, color);
       }
     },
     whoami() {
       fetch(authEndpoint)
-      .then(res => {
-          if(!res.ok) {
-            this.generalError = true
-            return
+        .then((res) => {
+          if (!res.ok) {
+            this.generalError = true;
+            return;
           }
-          res.json().then(data => {
-            if(data.sessionid) {
-              this.user = data
+          res.json().then((data) => {
+            if (data.sessionid) {
+              this.user = data;
             } else {
-              this.generalError = true
+              this.generalError = true;
             }
-          })
-      })
-      .catch(err => {
-        this.generalError = true
-      })
-    }
+          });
+        })
+        .catch((err) => {
+          this.generalError = true;
+        });
+    },
   },
   mounted() {
-    this.whoami()
-  }
-}
+    this.whoami();
+  },
+};
 </script>
 
 <template>
   <v-app v-if="!generalError">
-
     <v-navigation-drawer expand-on-hover rail permanent>
-
       <v-list nav>
-        <v-list-item v-for="route in $router.options.routes" :to="route.path" :title="route.title" :prepend-icon="route.icon" v-show="!route.roles || checkIfInRole(user, route.roles)" exact></v-list-item>
+        <v-list-item
+          v-for="route in $router.options.routes"
+          :to="route.path"
+          :title="route.title"
+          :prepend-icon="route.icon"
+          v-show="!route.roles || checkIfInRole(user, route.roles)"
+          exact
+        ></v-list-item>
       </v-list>
 
       <v-spacer></v-spacer>
 
       <v-list nav>
-        <v-list-item key="Login" @click="loginDialog = true" @close="onLogin" prepend-icon="mdi-login" title="Login" exact v-if="!user.username"/>
-        <v-list-item key="Logout" @click="logoutDialog = true" @close="onLogin" prepend-icon="mdi-logout" title="Logout" exact v-if="user.username"/>
+        <v-list-item
+          key="Login"
+          @click="loginDialog = true"
+          @close="onLogin"
+          prepend-icon="mdi-login"
+          title="Login"
+          exact
+          v-if="!user.username"
+        />
+        <v-list-item
+          key="Logout"
+          @click="logoutDialog = true"
+          @close="onLogin"
+          prepend-icon="mdi-logout"
+          title="Logout"
+          exact
+          v-if="user.username"
+        />
       </v-list>
-
     </v-navigation-drawer>
 
     <v-main>
@@ -91,13 +111,19 @@ export default {
     </v-dialog>
 
     <v-snackbar v-model="snackbar.on" :color="snackbar.color" :timeout="3000">
-      <div style="width: 100%; text-align: center;">{{ snackbar.text }}</div>
+      <div style="width: 100%; text-align: center">{{ snackbar.text }}</div>
     </v-snackbar>
-
   </v-app>
 
-  <v-snackbar v-model="generalError" color="error" location="center" timeout="-1">
-    <div style="width: 100%; text-align: center;">Brak połączenia z backendem</div>
+  <v-snackbar
+    v-model="generalError"
+    color="error"
+    location="center"
+    timeout="-1"
+  >
+    <div style="width: 100%; text-align: center">
+      Brak połączenia z backendem
+    </div>
   </v-snackbar>
 </template>
 
