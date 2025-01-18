@@ -1,8 +1,12 @@
 <script>
+import TaskModal from "./TaskModal.vue";
 const projectEndpoint = "/api/project";
 const personEndpoint = "/api/person";
 
 export default {
+  components: {
+    TaskModal,
+  },
   data() {
     return {
       isValid: false,
@@ -18,6 +22,7 @@ export default {
         },
       },
       persons: [],
+      showTaskModal: false, // State to show/hide the TaskModal
     };
   },
   props: ["project"],
@@ -123,7 +128,7 @@ export default {
   <v-form v-model="isValid">
     <v-card>
       <v-card-title>{{
-        input._id ? "Edytuj dane" : "Wprowadź dane nowej osoby"
+        input._id ? "Edytuj dane" : "Wprowadź dane nowego projektu"
       }}</v-card-title>
       <v-card-subtitle>
         Dane muszą spełniać odpowiednie reguły, zarówno w tym formularzu, jak i
@@ -166,6 +171,15 @@ export default {
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
+        <!-- Task management button -->
+        <v-btn
+          v-if="input._id"
+          variant="elevated"
+          color="primary"
+          @click="showTaskModal = true"
+        >
+          Zarządzaj zadaniami
+        </v-btn>
         <v-btn variant="elevated" @click="clear">Zeruj</v-btn>
         <v-btn
           color="primary"
@@ -189,6 +203,13 @@ export default {
         <v-btn variant="elevated" @click="close">Zamknij</v-btn>
       </v-card-actions>
     </v-card>
+
+    <!-- Task Modal -->
+    <TaskModal
+      v-if="showTaskModal"
+      :project="input"
+      @close="showTaskModal = false"
+    />
   </v-form>
 </template>
 

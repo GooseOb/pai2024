@@ -69,14 +69,24 @@ const project = (module.exports = {
     if (limit > 0) {
       aggregation.push({ $limit: limit });
     }
-    aggregation.push({
-      $lookup: {
-        from: "people",
-        localField: "contractor_ids",
-        foreignField: "_id",
-        as: "contractors",
+    aggregation.push(
+      {
+        $lookup: {
+          from: "people",
+          localField: "contractor_ids",
+          foreignField: "_id",
+          as: "contractors",
+        },
       },
-    });
+      {
+        $lookup: {
+          from: "tasks",
+          localField: "_id",
+          foreignField: "project_id",
+          as: "tasks",
+        },
+      },
+    );
     project.model
       .aggregate([
         {
