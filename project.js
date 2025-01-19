@@ -28,7 +28,7 @@ const schema = new mongoose.Schema(
         validator: (value) => !!new Date(),
         message: (props) => `${props.value} nie jest prawidłową datą urodzenia`,
       },
-      transform: (value) => value.toISOString().substr(0, 10),
+      transform: (value) => value && value.toISOString().substr(0, 10),
     },
     contractor_ids: { type: [String], required: false, default: [] },
   },

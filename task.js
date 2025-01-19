@@ -13,7 +13,7 @@ const schema = new mongoose.Schema(
     endDate: {
       type: Date,
       required: false,
-      transform: (value) => value.toISOString().substr(0, 10),
+      transform: (value) => value && value.toISOString().substr(0, 10),
     },
     assignee_ids: { type: [String], required: false, default: [] },
     project_id: { type: String, required: true, ref: "project" },

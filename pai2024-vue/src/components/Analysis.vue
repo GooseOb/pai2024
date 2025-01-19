@@ -8,28 +8,31 @@ const todayDate = today.toISOString().substring(0, 10);
 const toISOStringDate = (dateNum) =>
   new Date(dateNum).toISOString().substring(0, 10);
 
+const to2Args = (fn) => (arg1, arg2) => fn(arg1, arg2);
+
 const findDate = (arr, getProp, compare) => {
   if (!arr.length) return todayDate;
   const parsed = arr.map(getProp).map(Date.parse);
-  return toISOStringDate(
-    parsed.reduce((acc, item) => compare(acc, item), parsed[0]),
-  );
+  return toISOStringDate(parsed.reduce(to2Args(compare), parsed[0]));
 };
 
+const extractStartDate = (entity) => entity.startDate;
+const extractEndDate = (entity) => entity.endDate || todayDate;
+
 const getStandardGanttData = (entities) => ({
-  start: findDate(entities, (entity) => entity.startDate, Math.min) + " 00:00",
-  end: findDate(entities, (entity) => entity.endDate, Math.max) + " 23:59",
+  start: findDate(entities, extractStartDate, Math.min) + " 00:00",
+  end: findDate(entities, extractEndDate, Math.max) + " 23:59",
   entities: entities.map((entity) => ({
     label: entity.name,
     bars: [
       {
-        begin: entity.startDate + " 00:00",
-        end: entity.endDate + " 23:59",
+        start: extractStartDate(entity) + " 00:00",
+        end: extractEndDate(entity) + " 23:59",
         ganttBarConfig: {
           id: entity._id,
           label: entity.name,
           style: {
-            background: entity.endDate < today ? "#e09b69" : "#4caf50",
+            background: entity.endDate ? "#e09b69" : "#4caf50",
             borderRadius: "5px",
             color: "white",
           },
@@ -98,7 +101,7 @@ export default {
         <g-gantt-chart
           :chart-start="projectGanttData.start"
           :chart-end="projectGanttData.end"
-          bar-start="begin"
+          bar-start="start"
           bar-end="end"
           precision="day"
         >
@@ -130,7 +133,7 @@ export default {
         <g-gantt-chart
           :chart-start="taskGanttData.start"
           :chart-end="taskGanttData.end"
-          bar-start="begin"
+          bar-start="start"
           bar-end="end"
           precision="day"
         >
