@@ -57,7 +57,10 @@ const task = (module.exports = {
       }
       item
         .save()
-        .then((itemAdded) => res.json(itemAdded))
+        .then((itemAdded) => {
+          task.onUpdate?.(itemAdded._id);
+          res.json(itemAdded);
+        })
         .catch((err) =>
           res
             .status(400)
@@ -78,7 +81,10 @@ const task = (module.exports = {
           { $set: req.body },
           { new: true, runValidators: true },
         )
-        .then((itemUpdated) => res.json(itemUpdated))
+        .then((itemUpdated) => {
+          task.onUpdate?.(itemUpdated._id);
+          res.json(itemUpdated);
+        })
         .catch((err) =>
           res.status(400).json({
             error: "Nie udało się zaktualizować zadania",
@@ -94,7 +100,10 @@ const task = (module.exports = {
     if (req.query._id) {
       task.model
         .findOneAndDelete({ _id: req.query._id })
-        .then((itemDeleted) => res.json(itemDeleted))
+        .then((itemDeleted) => {
+          task.onUpdate?.(itemDeleted._id);
+          res.json(itemDeleted);
+        })
         .catch((err) =>
           res
             .status(400)

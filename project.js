@@ -126,6 +126,7 @@ const project = (module.exports = {
       item
         .save()
         .then((itemAdded) => {
+          project.onUpdate?.(itemAdded._id);
           res.json(itemAdded);
         })
         .catch((err) => res.status(400).json({ error: err.message }));
@@ -145,6 +146,7 @@ const project = (module.exports = {
           { new: true, runValidators: true },
         )
         .then((itemUpdated) => {
+          project.onUpdate?.(itemUpdated._id);
           res.json(itemUpdated);
         })
         .catch((err) => res.status(400).json({ error: err.message }));
@@ -159,6 +161,7 @@ const project = (module.exports = {
       project.model
         .findOneAndDelete({ _id })
         .then((itemDeleted) => {
+          project.onUpdate?.(itemDeleted._id);
           res.json(itemDeleted);
         })
         .catch((err) => res.status(400).json({ error: err.message }));

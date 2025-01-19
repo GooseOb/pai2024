@@ -83,12 +83,50 @@ export default {
     prepareTaskGanttData() {
       this.taskGanttData = getStandardGanttData(this.tasks);
     },
+    handleWebSocketMessage(event) {
+      const message = JSON.parse(event.data);
+      if (message.type === "update") {
+        const { entity, entityId } = message;
+        if (entity === "project") {
+          this.loadProjects();
+        } else if (
+          entity === "task" &&
+          this.tasks.some((task) => task._id === entityId)
+        ) {
+          this.loadTasksForProject();
+        }
+      }
+    },
+    setupWebSocket() {
+      const websocketEndpoint = `${window.location.protocol === "https:" ? "wss" : "ws"}://${"localhost:8000" || window.location.host}`;
+      this.ws = new WebSocket(websocketEndpoint);
+
+      this.ws.onopen = () => {
+        console.log("WebSocket connection established");
+      };
+
+      this.ws.onmessage = this.handleWebSocketMessage;
+
+      this.ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+      this.ws.onclose = () => {
+        console.log("WebSocket connection closed");
+      };
+    },
   },
   watch: {
     selectedProjectId: "loadTasksForProject",
   },
   mounted() {
     this.loadProjects();
+    this.setupWebSocket();
+  },
+  beforeUnmount() {
+    if (this.ws) {
+      this.ws.close();
+    }
   },
 };
 </script>

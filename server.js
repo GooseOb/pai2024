@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const expressSession = require("express-session");
 const passport = require("passport");
 const passportJson = require("passport-json");
+const { WebSocketServer } = require("ws");
 
 // własne moduły
 const auth = require("./auth");
@@ -90,8 +91,52 @@ mongoose
     project.init(conn);
     task.init(conn);
 
-    app.listen(config.port, () => {
+    const server = app.listen(config.port, () => {
       console.log("Backend słucha na porcie", config.port);
+    });
+
+    // WebSocket Server
+    const wss = new WebSocketServer({ server });
+    console.log("WebSocket server initialized");
+
+    // Broadcast function to notify all clients
+    const broadcast = (message) => {
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(message));
+        }
+      });
+    };
+
+    // Notify clients about project changes
+    project.onUpdate = (entityId) => {
+      broadcast({
+        type: "update",
+        entity: "project",
+        entityId,
+      });
+    };
+
+    // Notify clients about task changes
+    task.onUpdate = (entityId) => {
+      broadcast({
+        type: "update",
+        entity: "task",
+        entityId,
+      });
+    };
+
+    // Handle WebSocket connection
+    wss.on("connection", (ws) => {
+      console.log("New WebSocket connection established");
+
+      ws.on("message", (message) => {
+        console.log("Received message from client:", message);
+      });
+
+      ws.on("close", () => {
+        console.log("WebSocket connection closed");
+      });
     });
   })
   .catch((err) => {
