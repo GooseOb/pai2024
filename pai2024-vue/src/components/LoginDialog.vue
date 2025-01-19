@@ -62,6 +62,7 @@ export default {
           label="Hasło"
           v-model="input.password"
           :rules="[]"
+          @keyup.enter="send"
         >
         </v-text-field>
       </v-card-text>
