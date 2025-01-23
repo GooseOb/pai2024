@@ -8,10 +8,12 @@ const mongoose = require("mongoose");
 const expressSession = require("express-session");
 const passport = require("passport");
 const passportJson = require("passport-json");
-const { WebSocketServer } = require("ws");
+
+const expressWs = require("express-ws");
 
 // własne moduły
 const auth = require("./auth");
+const websocket = require("./websocket");
 const person = require("./person");
 const project = require("./project");
 const task = require("./task");
@@ -41,13 +43,12 @@ app.use((err, req, res, next) => {
 app.use(express.static(config.frontend));
 
 // inicjalizacja mechanizmów utrzymania sesji i autoryzacji
-app.use(
-  expressSession({
-    secret: config.dbUrl,
-    resave: false,
-    saveUninitialized: true,
-  }),
-);
+const session = expressSession({
+  secret: config.dbUrl,
+  resave: false,
+  saveUninitialized: true,
+});
+app.use(session);
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new passportJson.Strategy(auth.checkCredentials));
@@ -64,6 +65,15 @@ app.post(
   auth.errorHandler,
 );
 app.delete(authEndpoint, auth.logout);
+app.put(authEndpoint, auth.checkIfInRole([0, 1]), (req, res) => {
+  req.sessionStore.all((err, sessions) => {
+    if (err) {
+      res.status(400).json({ error: "Cannot retrieve sessions" });
+      return;
+    }
+    res.json(sessions);
+  });
+});
 
 app.get(person.endpoint, auth.checkIfInRole([0, 1]), person.get);
 app.post(person.endpoint, auth.checkIfInRole([0]), person.post);
@@ -80,6 +90,37 @@ app.post(task.endpoint, auth.checkIfInRole([0]), task.post);
 app.put(task.endpoint, auth.checkIfInRole([0]), task.put);
 app.delete(task.endpoint, auth.checkIfInRole([0]), task.delete);
 
+// endpoint websocketu
+const wsEndpoint = "/ws";
+const wsInstance = expressWs(app);
+app.ws(wsEndpoint, (_ws, req, next) => session(req, {}, next), websocket);
+
+const broadcast = (message) => {
+  wsInstance.getWss().clients.forEach((client) => {
+    if (client.readyState === client.OPEN) {
+      client.send(JSON.stringify(message));
+    }
+  });
+};
+
+// Notify clients about project changes
+project.onUpdate = (projectId) => {
+  broadcast({
+    type: "update",
+    entity: "project",
+    projectId,
+  });
+};
+
+// Notify clients about task changes
+task.onUpdate = (projectId) => {
+  broadcast({
+    type: "update",
+    entity: "task",
+    projectId,
+  });
+};
+
 console.log("Łączę się z bazą danych...");
 mongoose
   .connect(config.dbUrl)
@@ -91,52 +132,8 @@ mongoose
     project.init(conn);
     task.init(conn);
 
-    const server = app.listen(config.port, () => {
+    app.listen(config.port, () => {
       console.log("Backend słucha na porcie", config.port);
-    });
-
-    // WebSocket Server
-    const wss = new WebSocketServer({ server });
-    console.log("WebSocket server initialized");
-
-    // Broadcast function to notify all clients
-    const broadcast = (message) => {
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(message));
-        }
-      });
-    };
-
-    // Notify clients about project changes
-    project.onUpdate = (entityId) => {
-      broadcast({
-        type: "update",
-        entity: "project",
-        entityId,
-      });
-    };
-
-    // Notify clients about task changes
-    task.onUpdate = (entityId) => {
-      broadcast({
-        type: "update",
-        entity: "task",
-        entityId,
-      });
-    };
-
-    // Handle WebSocket connection
-    wss.on("connection", (ws) => {
-      console.log("New WebSocket connection established");
-
-      ws.on("message", (message) => {
-        console.log("Received message from client:", message);
-      });
-
-      ws.on("close", () => {
-        console.log("WebSocket connection closed");
-      });
     });
   })
   .catch((err) => {

@@ -125,9 +125,9 @@ const project = (module.exports = {
       }
       item
         .save()
-        .then((itemAdded) => {
-          project.onUpdate?.(itemAdded._id);
-          res.json(itemAdded);
+        .then((item) => {
+          project.onUpdate?.(item._id);
+          res.json(item);
         })
         .catch((err) => res.status(400).json({ error: err.message }));
     } else {
@@ -145,9 +145,9 @@ const project = (module.exports = {
           { $set: req.body },
           { new: true, runValidators: true },
         )
-        .then((itemUpdated) => {
-          project.onUpdate?.(itemUpdated._id);
-          res.json(itemUpdated);
+        .then((item) => {
+          project.onUpdate?.(item._id);
+          res.json(item);
         })
         .catch((err) => res.status(400).json({ error: err.message }));
     } else {
@@ -160,9 +160,9 @@ const project = (module.exports = {
       const _id = req.query._id;
       project.model
         .findOneAndDelete({ _id })
-        .then((itemDeleted) => {
-          project.onUpdate?.(itemDeleted._id);
-          res.json(itemDeleted);
+        .then((item) => {
+          project.onUpdate?.(item._id);
+          res.json(item);
         })
         .catch((err) => res.status(400).json({ error: err.message }));
     } else {

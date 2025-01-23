@@ -86,19 +86,18 @@ export default {
     handleWebSocketMessage(event) {
       const message = JSON.parse(event.data);
       if (message.type === "update") {
-        const { entity, entityId } = message;
-        if (entity === "project") {
+        if (message.entity === "project") {
           this.loadProjects();
         } else if (
-          entity === "task" &&
-          this.tasks.some((task) => task._id === entityId)
+          message.entity === "task" &&
+          message.projectId === this.selectedProjectId
         ) {
           this.loadTasksForProject();
         }
       }
     },
     setupWebSocket() {
-      const websocketEndpoint = `${window.location.protocol === "https:" ? "wss" : "ws"}://${"localhost:8000" || window.location.host}`;
+      const websocketEndpoint = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`;
       this.ws = new WebSocket(websocketEndpoint);
 
       this.ws.onopen = () => {

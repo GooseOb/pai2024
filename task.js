@@ -57,9 +57,9 @@ const task = (module.exports = {
       }
       item
         .save()
-        .then((itemAdded) => {
-          task.onUpdate?.(itemAdded._id);
-          res.json(itemAdded);
+        .then((item) => {
+          task.onUpdate?.(item.project_id);
+          res.json(item);
         })
         .catch((err) =>
           res
@@ -81,9 +81,9 @@ const task = (module.exports = {
           { $set: req.body },
           { new: true, runValidators: true },
         )
-        .then((itemUpdated) => {
-          task.onUpdate?.(itemUpdated._id);
-          res.json(itemUpdated);
+        .then((item) => {
+          task.onUpdate?.(item.project_id);
+          res.json(item);
         })
         .catch((err) =>
           res.status(400).json({
@@ -100,9 +100,9 @@ const task = (module.exports = {
     if (req.query._id) {
       task.model
         .findOneAndDelete({ _id: req.query._id })
-        .then((itemDeleted) => {
-          task.onUpdate?.(itemDeleted._id);
-          res.json(itemDeleted);
+        .then((item) => {
+          task.onUpdate?.(item.project_id);
+          res.json(item);
         })
         .catch((err) =>
           res
